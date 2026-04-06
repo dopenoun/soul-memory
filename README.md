@@ -214,26 +214,24 @@ export SOUL_MEMORY_DIR=~/.soul-memory/
 ### Verify
 
 ```python
-from soul_memory import SoulMemory
+from soul_memory import SoulMemory, CharacterScope
 
-mem = SoulMemory()
-mem.boot_context()  # loads L0, primes L1
+mem = SoulMemory(soul_id="my-agent")
+ctx = mem.boot_context()  # loads L0, primes L1
+print(ctx)
 
 # Store a memory
 mem.remember(
     content="The human prefers direct communication, no fluff.",
-    source="human_provided",
-    trust_level=1.0,
-    salience={
-        "relational_relevance": 0.9,
-        "long_term_value": 0.95,
-        "ethical_alignment": 1.0,
-        "delight": 0.3
-    }
+    scope=CharacterScope.BELIEFS,
+    raw_weight=0.9,
+    identity_alignment=1.0,
 )
 
 # Recall
 results = mem.recall("how does the human like to communicate?", top_k=3)
+for r in results:
+    print(r)
 ```
 
 ### Integration with Agent Frameworks
@@ -245,7 +243,7 @@ soul_memory is framework-agnostic. It exposes a Python API that any agent can ca
 # In your Hermes profile's execution loop
 from soul_memory import SoulMemory
 
-mem = SoulMemory()
+mem = SoulMemory(soul_id="hermes")
 mem.boot_context()
 
 # On receiving a message
@@ -262,13 +260,11 @@ context = mem.recall(message.content, top_k=5)
 
 **With SCRIBE (curation gate):**
 ```python
-# SCRIBE reviews L2 memories nightly
-pending = mem.get_pending_promotions()
-for memory in pending:
-    if scribe_approves(memory):
-        mem.promote(memory.id, to_tier="L1")
-    else:
-        mem.dissolve(memory.id, reason="curation_rejected")
+# SCRIBE reviews low-score memories nightly
+results = mem.recall("*", top_k=50)
+for r in results:
+    if not scribe_approves(r):
+        mem.dissolve(r.trace.id)
 ```
 
 ---

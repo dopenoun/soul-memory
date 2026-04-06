@@ -3,7 +3,7 @@ Hermes integration pattern — memory in a subprocess agent loop.
 """
 from soul_memory import SoulMemory
 
-mem = SoulMemory()
+mem = SoulMemory(soul_id="hermes")
 mem.boot_context()
 
 

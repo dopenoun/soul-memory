@@ -1,19 +1,17 @@
 """
-SCRIBE curation gate — nightly L2 promotion/dissolution pass.
+SCRIBE curation gate — nightly dissolution pass on low-value memories.
 """
 from soul_memory import SoulMemory
 
 
-def scribe_approves(memory) -> bool:
+def scribe_approves(recall_result) -> bool:
     """Stub: replace with real curation logic."""
-    return memory.salience.get("long_term_value", 0) > 0.7
+    return recall_result.trace.compound_score > 0.4
 
 
-mem = SoulMemory()
-pending = mem.get_pending_promotions()
+mem = SoulMemory(soul_id="scribe")
+results = mem.recall("*", top_k=100)
 
-for memory in pending:
-    if scribe_approves(memory):
-        mem.promote(memory.id, to_tier="L1")
-    else:
-        mem.dissolve(memory.id, reason="curation_rejected")
+for r in results:
+    if not scribe_approves(r):
+        mem.dissolve(r.trace.id)
