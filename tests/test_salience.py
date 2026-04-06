@@ -18,5 +18,5 @@ def test_high_weight_memory_scores_higher(mem):
     results = mem.recall("salience", top_k=5)
     assert results
     # highest compound_score should be first
-    scores = [r.score for r in results]
+    scores = [r.composite_score for r in results]
     assert scores == sorted(scores, reverse=True)
